@@ -1,0 +1,7 @@
+{
+  "name": "Blueprinty",
+  "description": "Platform transforming travel videos into interactive, verified travel blueprints using AI and Maps/Search grounding.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
