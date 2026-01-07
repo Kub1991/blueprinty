@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as actions_prompt from "../actions/prompt.js";
 import type * as actions_ytProcessor from "../actions/ytProcessor.js";
 import type * as blueprints from "../blueprints.js";
 import type * as debug from "../debug.js";
@@ -21,6 +22,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "actions/prompt": typeof actions_prompt;
   "actions/ytProcessor": typeof actions_ytProcessor;
   blueprints: typeof blueprints;
   debug: typeof debug;

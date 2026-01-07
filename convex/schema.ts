@@ -30,7 +30,7 @@ export default defineSchema({
         transcript: v.optional(v.string()),
         createdAt: v.number(),
     })
-        .index("by_user", ["userId"])
+        .index("by_user", ["userId", "publishedAt"])
         .index("by_youtube_id", ["youtubeVideoId"]),
 
     // Blueprints (Generated Travel Plans)
@@ -76,6 +76,7 @@ export default defineSchema({
             v.literal("pending_review"),
             v.literal("published")
         ),
+        creatorVerified: v.optional(v.boolean()), // true = verified by creator, false/undefined = AI only
         createdAt: v.number(),
         publishedAt: v.optional(v.number()),
     })

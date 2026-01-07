@@ -7,7 +7,7 @@ import { api } from '../convex/_generated/api';
 import { Id } from '../convex/_generated/dataModel';
 
 interface CreatorDashboardProps {
-  onVerifyClick: (blueprintId?: string) => void;
+  onVerifyClick: (blueprintId?: string, startInMap?: boolean) => void;
 }
 
 const data = [
@@ -282,81 +282,65 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onVerifyClick }) =>
         )}
       </div>
 
+      {/* JEDYNA SEKCJA: Wszystkie Plany (Sprzedaż i Weryfikacja) */}
       <div className="space-y-4 pt-4">
-        <h3 className="text-xl font-black flex items-center gap-2 tracking-tight">
-          <Clock size={20} className="text-purple-600" />
-          Ostatnio przetworzone
+        <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
+          Twoje Plany Podróży
+          <span className="text-xs font-medium text-gray-400 font-sans tracking-normal">(AI & Premium)</span>
         </h3>
-
-        {videos?.filter(v => v.status === "completed").slice(0, 1).map(video => (
-          <div key={video._id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-lg transition-all flex items-center gap-6 group">
-            <div className="relative w-32 h-20 rounded-xl overflow-hidden flex-shrink-0">
-              <img
-                src={video.thumbnailUrl}
-                alt="Thumbnail"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                <PlayCircle className="text-white w-8 h-8" />
-              </div>
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-lg text-gray-900 truncate tracking-tight">{video.title}</h4>
-              <p className="text-sm text-gray-500 flex items-center gap-2">
-                <Sparkles size={14} className="text-yellow-500" />
-                AI przygotowało kompletny plan
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                // Here we'd ideally find the blueprint linked to this video
-                onVerifyClick();
-              }}
-              className="bg-black text-white px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-gray-800 transition active:scale-95 leading-none"
-            >
-              Weryfikuj Plan <ArrowRight size={18} />
-            </button>
-          </div>
-        ))}
-        {(!videos || !videos.some(v => v.status === "completed")) && (
-          <div className="bg-gray-50 border border-gray-100 border-dashed rounded-2xl p-8 text-center text-gray-400 text-sm font-medium">
-            Brak planów do weryfikacji. Kliknij "Stwórz Blueprint" powyżej.
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-4 pt-4">
-        <h3 className="text-xl font-black tracking-tight">Twoje Aktywne Plany (Sprzedaż)</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {myBlueprints?.map((bp) => (
-            <div key={bp._id} className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center gap-4 hover:shadow-md transition group">
-              <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+            <div key={bp._id} className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center gap-4 hover:shadow-md transition group overflow-hidden relative">
+              {/* Subtle top indicator based on status/verification */}
+              <div className={`absolute top-0 left-0 w-full h-1 ${bp.creatorVerified === true ? 'bg-green-400' : 'bg-purple-400'
+                }`}></div>
+
+              <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 relative">
                 <img src={bp.thumbnailUrl} alt={bp.title} className="w-full h-full object-cover" />
+                {bp.creatorVerified === true ? (
+                  <div className="absolute bottom-1 right-1 bg-green-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase">
+                    ✓ Premium
+                  </div>
+                ) : (
+                  <div className="absolute bottom-1 right-1 bg-purple-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase">
+                    AI
+                  </div>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-bold text-sm text-gray-900 truncate">{bp.title}</h4>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${bp.status === 'published' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${bp.creatorVerified === true ? 'bg-green-50 text-green-600' : 'bg-purple-50 text-purple-600'
                     }`}>
-                    {bp.status === 'published' ? 'Opublikowany' : 'Draft'}
+                    {bp.creatorVerified === true ? 'Zweryfikowany' : 'Tylko AI'}
                   </span>
                   <span className="text-[10px] text-gray-400 font-medium">{bp.points.length} punktów</span>
                 </div>
               </div>
-              <button
-                onClick={() => handleDeleteBlueprint(bp._id)}
-                className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                title="Usuń plan"
-              >
-                <Trash size={18} />
-                <span className="sr-only">Usuń</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onVerifyClick(bp._id, true)}
+                  className={`p-2 rounded-lg transition-all ${bp.creatorVerified === true
+                    ? 'text-gray-400 hover:text-blue-500 hover:bg-blue-50'
+                    : 'text-purple-400 hover:text-purple-600 hover:bg-purple-50'
+                    }`}
+                  title={bp.creatorVerified === true ? "Edytuj plan" : "Weryfikuj plan"}
+                >
+                  <Map size={18} />
+                </button>
+                <button
+                  onClick={() => handleDeleteBlueprint(bp._id)}
+                  className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                  title="Usuń plan całkowicie"
+                >
+                  <Trash size={18} />
+                </button>
+              </div>
             </div>
           ))}
           {(!myBlueprints || myBlueprints.length === 0) && (
             <div className="col-span-full py-12 bg-gray-50/50 border border-dashed border-gray-200 rounded-2xl text-center text-gray-400 text-sm font-medium">
-              Nie masz jeszcze żadnych aktywnych planów.
+              Nie masz jeszcze żadnych planów. Wygeneruj plan z filmu powyżej.
             </div>
           )}
         </div>

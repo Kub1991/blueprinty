@@ -8,17 +8,20 @@ import { LayoutDashboard, Compass } from 'lucide-react';
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('LANDING');
   const [selectedBlueprintId, setSelectedBlueprintId] = useState<string | null>(null);
+  const [verifyingInMapMode, setVerifyingInMapMode] = useState(false);
 
   const renderContent = () => {
     switch (view) {
       case 'CREATOR_DASHBOARD':
-        return <CreatorDashboard onVerifyClick={(id) => {
+        return <CreatorDashboard onVerifyClick={(id, startInMap) => {
           setSelectedBlueprintId(id || null);
+          setVerifyingInMapMode(!!startInMap);
           setView('CREATOR_VERIFIER');
         }} />;
       case 'CREATOR_VERIFIER':
         return <CreatorVerifier
           blueprintId={selectedBlueprintId}
+          startInMapMode={verifyingInMapMode}
           onPublish={() => {
             setSelectedBlueprintId(null);
             setView('CREATOR_DASHBOARD');

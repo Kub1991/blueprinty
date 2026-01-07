@@ -23,7 +23,7 @@ For each Point of Interest (POI), you MUST extract the exact number from the bra
 
 Output a JSON array of objects with these fields:
 - "name": Name of the place.
-- "description": A short tip (1-2 sentences). Address the viewer directly.
+- "description": A short tip (1-2 sentences). Address the viewer directly. IMPORTANT: Provide all descriptions in POLISH language.
 - "type": "food", "stay", "activity", "insta", or "tip".
 - "day": Trip day (number).
 - "timestamp": The start time as an INTEGER (e.g., 120). This is the number from the brackets.
@@ -58,30 +58,43 @@ export const fetchChannelVideos = action({
 
         console.log(`Fetching videos for channel: ${args.channelHandle}${pageToken ? ` (Page: ${pageToken})` : ''}`);
 
-        // 1. Get Channel ID from Handle using channels.list with forHandle (more reliable)
+        // 1. Resolve Channel ID and Uploads Playlist ID
         const handle = args.channelHandle.startsWith('@') ? args.channelHandle.slice(1) : args.channelHandle;
 
         let channelId: string | null = user?.youtubeChannelId || null;
+        let uploadsPlaylistId: string | null = null;
+
+        const fetchChannelDetails = async (id: string) => {
+            const url = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,id&id=${id}&key=${YT_API_KEY}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            return data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+        };
 
         if (!channelId) {
-            // Try direct forHandle lookup first
-            const handleUrl = `https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${encodeURIComponent(handle)}&key=${YT_API_KEY}`;
+            // Try direct forHandle lookup
+            const handleUrl = `https://www.googleapis.com/youtube/v3/channels?part=id,contentDetails&forHandle=${encodeURIComponent(handle)}&key=${YT_API_KEY}`;
             const handleRes = await fetch(handleUrl);
             const handleData = await handleRes.json();
 
             if (handleData.items && handleData.items.length > 0) {
                 channelId = handleData.items[0].id;
+                uploadsPlaylistId = handleData.items[0].contentDetails.relatedPlaylists.uploads;
+
                 await ctx.runMutation(api.users.connectYouTubeChannel, {
                     userId: args.userId,
                     channelId: channelId!,
                     channelHandle: args.channelHandle
                 });
             } else {
+                // Fallback search
                 const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(handle)}&key=${YT_API_KEY}`;
                 const searchRes = await fetch(searchUrl);
                 const searchData = await searchRes.json();
                 if (searchData.items && searchData.items.length > 0) {
                     channelId = searchData.items[0].id.channelId;
+                    uploadsPlaylistId = await fetchChannelDetails(channelId!);
+
                     await ctx.runMutation(api.users.connectYouTubeChannel, {
                         userId: args.userId,
                         channelId: channelId!,
@@ -89,64 +102,92 @@ export const fetchChannelVideos = action({
                     });
                 }
             }
+        } else {
+            uploadsPlaylistId = await fetchChannelDetails(channelId);
         }
 
-        if (!channelId) {
-            throw new Error(`Channel not found for handle: ${args.channelHandle}`);
+        if (!channelId || !uploadsPlaylistId) {
+            throw new Error(`Channel or Uploads Playlist not found for handle: ${args.channelHandle}`);
         }
+        console.log(`[ytProcessor] Resolved Channel ID: ${channelId}, Uploads Playlist ID: ${uploadsPlaylistId}`);
 
         // 3. Clear old videos only if NOT loading more
         if (!args.loadMore) {
             await ctx.runMutation(api.videos.clearUserVideos, { userId: args.userId });
         }
 
-        // 4. Get videos with pagination support
-        const videosUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&maxResults=12&order=date&type=video&key=${YT_API_KEY}${pageToken ? `&pageToken=${pageToken}` : ''}`;
-        const videosRes = await fetch(videosUrl);
-        const videosData = await videosRes.json();
+        // 4. Get videos using playlistItems (Efficient! 1 Quota unit vs 100 for Search)
+        const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${uploadsPlaylistId}&maxResults=15&key=${YT_API_KEY}${pageToken ? `&pageToken=${pageToken}` : ''}`;
+        const playlistRes = await fetch(playlistUrl);
+        const playlistData = await playlistRes.json();
 
-        if (!videosData.items) throw new Error("Failed to fetch videos from YouTube API");
+        if (!playlistData.items) throw new Error("Failed to fetch playlist items from YouTube API");
+        console.log(`[ytProcessor] Fetched ${playlistData.items.length} raw items from playlist.`);
 
         // 5. Store next page token
         await ctx.runMutation(api.users.updateNextPageToken, {
             userId: args.userId,
-            nextPageToken: videosData.nextPageToken
+            nextPageToken: playlistData.nextPageToken
         });
 
-        // 6. Fetch durations
-        const videoIds = videosData.items.map((v: any) => v.id.videoId).join(',');
+        // 6. Fetch durations and Filter Shorts (> 60s)
+        const videoIds = playlistData.items.map((v: any) => v.contentDetails.videoId).join(',');
+
         const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${YT_API_KEY}`;
         const detailsRes = await fetch(detailsUrl);
         const detailsData = await detailsRes.json();
 
         const durationMap: Record<string, string> = {};
+        const validVideoIds = new Set<string>();
+        let shortsCount = 0;
+
         detailsData.items?.forEach((item: any) => {
             const duration = item.contentDetails.duration;
             const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+
+            let totalSeconds = 0;
             if (match) {
+                totalSeconds += (parseInt(match[1] || '0') * 3600);
+                totalSeconds += (parseInt(match[2] || '0') * 60);
+                totalSeconds += (parseInt(match[3] || '0'));
+
                 const h = match[1] ? `${match[1]}:` : '';
                 const m = match[2] ? match[2].padStart(2, '0') : '00';
                 const s = match[3] ? match[3].padStart(2, '0') : '00';
                 durationMap[item.id] = `${h}${m}:${s}`;
             }
+
+            // Exclude videos <= 60 seconds (Shorts)
+            if (totalSeconds > 60) {
+                validVideoIds.add(item.id);
+            } else {
+                console.log(`[ytProcessor] Filtered out Short: ${item.id} (${totalSeconds}s)`);
+            }
         });
 
+        console.log(`[ytProcessor] Filtering complete. Removed ${shortsCount || 0} Shorts. Keeping ${validVideoIds.size} valid videos.`);
+
         // 7. Save to database
-        for (const item of videosData.items) {
-            await ctx.runMutation(api.videos.create, {
-                userId: args.userId,
-                youtubeVideoId: item.id.videoId,
-                title: item.snippet.title,
-                thumbnailUrl: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
-                duration: durationMap[item.id.videoId] || "0:00",
-                publishedAt: item.snippet.publishedAt,
-            });
+        let savedCount = 0;
+        for (const item of playlistData.items) {
+            const videoId = item.contentDetails.videoId;
+            if (validVideoIds.has(videoId)) {
+                await ctx.runMutation(api.videos.create, {
+                    userId: args.userId,
+                    youtubeVideoId: videoId,
+                    title: item.snippet.title,
+                    thumbnailUrl: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
+                    duration: durationMap[videoId] || "0:00",
+                    publishedAt: item.snippet.publishedAt,
+                });
+                savedCount++;
+            }
         }
 
         return {
             success: true,
-            count: videosData.items.length,
-            hasMore: !!videosData.nextPageToken
+            count: savedCount,
+            hasMore: !!playlistData.nextPageToken
         };
     },
 });
@@ -337,8 +378,9 @@ export const processVideo = action({
                             let photoReference = undefined;
                             if (result.photos && result.photos.length > 0) {
                                 photoReference = result.photos[0].photo_reference;
-                                // Still keep imageUrl as fallback, but we'll prefer photoReference in frontend
-                                imageUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photoReference}&key=${YT_API_KEY}`;
+                                // We do NOT store the full URL with the backend key to prevent leakage.
+                                // The frontend will construct the URL using its own restricted VITE_GOOGLE_MAPS_API_KEY.
+                                imageUrl = undefined;
                             }
 
                             enrichedInfo = {

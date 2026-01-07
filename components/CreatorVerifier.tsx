@@ -1,48 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useVerifier } from '../hooks';
-import { PointVerifierCard } from './Creator';
-import { Check, X, Edit2, Loader2, Sparkles, Share2 } from 'lucide-react';
+import MapVerifier from './Creator/MapVerifier';
+import { Loader2, Sparkles, Check, Map, ArrowRight } from 'lucide-react';
+import { POINT_ICONS, POINT_COLORS } from '../constants';
 
 interface CreatorVerifierProps {
   blueprintId?: string | null;
   onPublish: () => void;
   onCancel: () => void;
+  startInMapMode?: boolean;
 }
 
-const CreatorVerifier: React.FC<CreatorVerifierProps> = ({ blueprintId, onPublish, onCancel }) => {
+const CreatorVerifier: React.FC<CreatorVerifierProps> = ({ blueprintId, onPublish, onCancel, startInMapMode = false }) => {
   const {
     loading,
     points,
-    currentIndex,
-    verifiedPoints,
-    isProcessingPoint,
+    setPoints, // Get the setter
     inputValue,
-    isEditing,
-    editName,
-    editDesc,
-    editDay,
-    editTimestamp,
     setInputValue,
     handleExtraction,
-    startEditing,
-    saveEdit,
-    setEditName,
-    setEditDesc,
-    setEditDay,
-    setEditTimestamp,
-    handleApprove,
-    handleReject,
     finalizeAndPublish,
-    currentPoint,
-    isComplete,
   } = useVerifier(blueprintId);
 
   const [isFinishing, setIsFinishing] = React.useState(false);
+  const [showMapEditor, setShowMapEditor] = useState(startInMapMode);
 
-  const handleFinalPublish = async () => {
+  const handleFinalPublish = async (verified: boolean = false) => {
     setIsFinishing(true);
     try {
-      await finalizeAndPublish();
+      await finalizeAndPublish(verified);
       onPublish();
     } catch (e) {
       console.error("Failed to publish", e);
@@ -53,7 +39,8 @@ const CreatorVerifier: React.FC<CreatorVerifierProps> = ({ blueprintId, onPublis
   };
 
   // Initial Input State
-  if (points.length === 0 && !loading) {
+  if (!blueprintId && points.length === 0 && !loading) {
+    // ... (Keep existing input state) ...
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 max-w-2xl mx-auto font-sans">
         <div className="w-full space-y-6">
@@ -100,119 +87,71 @@ const CreatorVerifier: React.FC<CreatorVerifierProps> = ({ blueprintId, onPublis
     );
   }
 
-  // Success / Share Screen
-  if (isComplete) {
+  // PREVIEW MODE (Grid of points)
+  if (!showMapEditor) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 text-center space-y-6 animate-in fade-in duration-500 font-sans">
-        {/* Social Media Graphic Mockup */}
-        <div className="w-64 aspect-[9/16] bg-black rounded-3xl shadow-2xl flex flex-col items-center justify-between text-white relative overflow-hidden border border-gray-800">
-          <div className="absolute top-0 left-0 w-full h-full opacity-60 bg-[url('https://picsum.photos/seed/travel/400/800')] bg-cover"></div>
-          <div className="z-10 w-full p-6 pt-12 bg-gradient-to-b from-black/80 to-transparent">
-            <h3 className="text-2xl font-black leading-tight">
-              JAPONIA
-              <br />W 7 DNI
-            </h3>
-          </div>
-          <div className="z-10 w-full p-6 pb-12 bg-gradient-to-t from-black/90 to-transparent flex flex-col gap-2">
-            <div className="bg-white text-black px-4 py-3 rounded-xl font-bold text-sm text-center shadow-lg">
-              Mój Plan Podróży <br />
-              już dostępny!
-            </div>
-            <p className="text-[10px] text-gray-300 uppercase tracking-widest mt-2">
-              Link w BIO
-            </p>
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-3xl font-bold mb-2">Gotowe!</h2>
-          <p className="text-gray-500 max-w-md">
-            Zweryfikowałeś {verifiedPoints.length} punktów. Twój plan jest gotowy do
-            sprzedaży.
+      <div className="max-w-4xl mx-auto p-6 min-h-screen font-sans pb-32">
+        <div className="text-center mb-8 space-y-2">
+          <h2 className="text-3xl font-black tracking-tight">AI znalazło {points.length} punktów</h2>
+          <p className="text-gray-500">
+            Oto lista atrakcji wyciągniętych z Twojego filmu. Co chcesz z nimi zrobić?
           </p>
         </div>
 
-        <button
-          onClick={handleFinalPublish}
-          disabled={isFinishing}
-          className="w-full max-w-md bg-black text-white py-4 rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-[1.01] transition flex items-center justify-center gap-2 disabled:opacity-50"
-        >
-          {isFinishing ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <>
-              <Share2 size={18} /> Kopiuj Link do Sklepu
-            </>
-          )}
-        </button>
+        {/* Points Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+          {points.map((point) => (
+            <div key={point.id} className="bg-white border border-gray-100 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:shadow-md transition">
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-sm border-2 border-white ${POINT_COLORS[point.type]}`}
+              >
+                {POINT_ICONS[point.type]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-gray-900 truncate">{point.name}</h4>
+                <p className="text-xs text-gray-400 truncate">{point.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Actions Footer */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-6 flex flex-col md:flex-row items-center justify-center gap-4 z-50">
+          <button
+            onClick={() => setShowMapEditor(true)}
+            className="w-full md:w-auto px-8 py-4 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-2xl font-bold text-sm transition flex items-center justify-center gap-2"
+          >
+            <Map size={18} />
+            Edytuj na Mapie
+          </button>
+
+          <button
+            onClick={() => handleFinalPublish(false)}
+            disabled={isFinishing}
+            className="w-full md:w-auto px-12 py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-bold text-sm shadow-xl transition disabled:opacity-50 flex items-center justify-center gap-2 group"
+          >
+            {isFinishing ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <>
+                <Sparkles size={18} className="text-purple-400 group-hover:rotate-12 transition-transform" />
+                Publikuj jako AI
+              </>
+            )}
+          </button>
+        </div>
       </div>
     );
   }
 
-  // Main Verification Card View
-  if (!currentPoint) return null;
-
+  // MAP VERIFIER (Editor View)
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] max-w-md mx-auto relative font-sans">
-      {/* Header */}
-      <div className="text-center py-4">
-        <h2 className="font-bold text-lg">Weryfikator AI</h2>
-        <p className="text-xs text-gray-400 uppercase tracking-wider">
-          Punkt {currentIndex + 1} z {points.length}
-        </p>
-      </div>
-
-      {/* Card */}
-      <div className="flex-1 flex flex-col p-4">
-        <div className="text-[10px] text-gray-400 break-all mb-2 font-mono bg-gray-100 p-2 rounded">
-          DEBUG POINT: {JSON.stringify(currentPoint)}
-        </div>
-        <PointVerifierCard
-          point={currentPoint}
-          isEditing={isEditing}
-          editName={editName}
-          editDesc={editDesc}
-          editDay={editDay}
-          editTimestamp={editTimestamp}
-          onEditNameChange={setEditName}
-          onEditDescChange={setEditDesc}
-          onEditDayChange={setEditDay}
-          onEditTimestampChange={setEditTimestamp}
-          onSaveEdit={saveEdit}
-          isProcessing={isProcessingPoint}
-        />
-      </div>
-
-      {/* Actions (Tinder Style) */}
-      <div className="p-6 pb-8 flex items-center justify-center gap-6">
-        <button
-          onClick={handleReject}
-          disabled={isProcessingPoint || isEditing}
-          className="w-14 h-14 rounded-full bg-white border border-gray-200 shadow-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 hover:scale-110 transition disabled:opacity-50"
-          title="Odrzuć (Pomyłka AI)"
-        >
-          <X size={28} />
-        </button>
-
-        <button
-          onClick={startEditing}
-          disabled={isProcessingPoint || isEditing}
-          className="w-12 h-12 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition disabled:opacity-50"
-          title="Edytuj"
-        >
-          <Edit2 size={20} />
-        </button>
-
-        <button
-          onClick={handleApprove}
-          disabled={isProcessingPoint || isEditing}
-          className="w-20 h-20 rounded-full bg-black shadow-2xl flex items-center justify-center text-white hover:scale-105 hover:bg-gray-900 transition disabled:opacity-50 border-4 border-white ring-1 ring-gray-100"
-          title="Zatwierdź"
-        >
-          <Check size={40} />
-        </button>
-      </div>
-    </div>
+    <MapVerifier
+      points={points}
+      setPoints={setPoints}
+      onSaveAndContinue={() => handleFinalPublish(true)}
+      isPublishing={isFinishing}
+    />
   );
 };
 

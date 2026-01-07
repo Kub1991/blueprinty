@@ -24,3 +24,10 @@ export const POINT_ICONS = {
   [PointType.INSTA]: '📸',
   [PointType.TIP]: '💡',
 };
+export const POINT_TYPES = [
+  PointType.FOOD,
+  PointType.STAY,
+  PointType.ACTIVITY,
+  PointType.INSTA,
+  PointType.TIP,
+];

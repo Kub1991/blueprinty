@@ -1,7 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Get all videos for a user
+// Get all videos for a user, sorted by newest first
 export const listByUser = query({
     args: { userId: v.id("users") },
     handler: async (ctx, args) => {

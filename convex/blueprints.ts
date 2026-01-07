@@ -95,10 +95,14 @@ export const create = mutation({
 
 // Publish a blueprint
 export const publish = mutation({
-    args: { blueprintId: v.id("blueprints") },
+    args: {
+        blueprintId: v.id("blueprints"),
+        verified: v.optional(v.boolean())
+    },
     handler: async (ctx, args) => {
         await ctx.db.patch(args.blueprintId, {
             status: "published",
+            creatorVerified: args.verified ?? false,
             publishedAt: Date.now(),
         });
     },
@@ -108,6 +112,12 @@ export const publish = mutation({
 export const remove = mutation({
     args: { blueprintId: v.id("blueprints") },
     handler: async (ctx, args) => {
+        const blueprint = await ctx.db.get(args.blueprintId);
+        if (blueprint?.videoId) {
+            await ctx.db.patch(blueprint.videoId, {
+                status: "pending"
+            });
+        }
         await ctx.db.delete(args.blueprintId);
     },
 });

@@ -37,9 +37,19 @@ const PointVerifierCard: React.FC<PointVerifierCardProps> = ({
     return (
         <div className="flex-1 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden relative flex flex-col">
             {/* Map/Image Area (Top) */}
-            <div className="h-[45%] bg-slate-100 relative group">
-                {/* Abstract Map Preview Placeholder */}
-                <div className="absolute inset-0 bg-[url('https://assets.website-files.com/5e832e12eb7ca02ee9064d42/5f79bb4152a657273398322e_Map%20Styling.png')] bg-cover opacity-50 grayscale mix-blend-multiply"></div>
+            <div className="h-[45%] bg-slate-100 relative group overflow-hidden">
+                {point.imageUrl ? (
+                    <>
+                        <img
+                            src={point.imageUrl}
+                            alt={point.name}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                    </>
+                ) : (
+                    <div className="absolute inset-0 bg-[url('https://assets.website-files.com/5e832e12eb7ca02ee9064d42/5f79bb4152a657273398322e_Map%20Styling.png')] bg-cover opacity-50 grayscale mix-blend-multiply"></div>
+                )}
 
                 <div className="absolute inset-0 flex items-center justify-center">
                     <div
