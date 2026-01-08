@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Blueprint, TripPoint } from '../types';
 import { POINT_COLORS, POINT_ICONS } from '../constants';
-import { useBlueprintFilters, useDrawerGestures } from '../hooks';
+import { useBlueprintFilters, useDrawerGestures, useActivePoint } from '../hooks';
 import {
   CreatorRail,
   FilterRail,
@@ -24,42 +24,16 @@ import {
   ShieldCheck,
   Info,
 } from 'lucide-react';
+import { MOCK_REVIEWS } from '../data/mockData';
 
 interface UserAppProps {
   onBackToHome: () => void;
 }
 
-const MOCK_REVIEWS: Review[] = [
-  {
-    id: 1,
-    user: 'Julia K.',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Julia',
-    rating: 5,
-    date: '2 dni temu',
-    text: 'Niesamowity plan! Te ukryte miejsca były puste, dokładnie tak jak obiecano. Warto każdej złotówki.',
-  },
-  {
-    id: 2,
-    user: 'Michał W.',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michal',
-    rating: 5,
-    date: 'Tydzień temu',
-    text: 'Genialna selekcja restauracji. Omijaliśmy pułapki turystyczne szerokim łukiem.',
-  },
-  {
-    id: 3,
-    user: 'Ania P.',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ania',
-    rating: 4,
-    date: 'Miesiąc temu',
-    text: 'Bardzo pomocne wskazówki logistyczne. Trochę dużo chodzenia, ale widoki wynagradzają wszystko.',
-  },
-];
 
 const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
   const [selectedBlueprint, setSelectedBlueprint] = useState<Blueprint | null>(null);
   const [activeMode, setActiveMode] = useState(false);
-  const [selectedPoint, setSelectedPoint] = useState<TripPoint | null>(null);
 
   // Use custom hooks
   const {
@@ -83,6 +57,8 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
     handleTouchMove,
     handleTouchEnd,
   } = useDrawerGestures(45);
+
+  const { selectedPoint, selectPoint, clearSelection } = useActivePoint(setSheetHeight);
 
   // =========== SCREEN U1: DISCOVERY FEED ===========
   if (!selectedBlueprint) {
@@ -130,8 +106,8 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
               <button
                 onClick={resetFilters}
                 className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all duration-300 ${hasActiveFilters
-                    ? 'bg-black text-white border-black shadow-lg shadow-black/20'
-                    : 'bg-white text-gray-900 border-gray-200 hover:bg-gray-50'
+                  ? 'bg-black text-white border-black shadow-lg shadow-black/20'
+                  : 'bg-white text-gray-900 border-gray-200 hover:bg-gray-50'
                   }`}
               >
                 <SlidersHorizontal size={18} strokeWidth={2.5} />
@@ -496,7 +472,7 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
           <PointDetail
             point={selectedPoint}
             blueprint={selectedBlueprint}
-            onBack={() => setSelectedPoint(null)}
+            onBack={() => clearSelection()}
           />
         ) : (
           <div className="px-8 pb-12 pt-6">
@@ -510,10 +486,7 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
             </div>
             <PointTimeline
               points={selectedBlueprint.points}
-              onSelectPoint={(point) => {
-                setSelectedPoint(point);
-                setSheetHeight(65);
-              }}
+              onSelectPoint={(point) => selectPoint(point)}
             />
           </div>
         )}
@@ -563,11 +536,8 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
           <MapView
             points={selectedBlueprint.points}
             selectedPoint={selectedPoint}
-            onSelectPoint={(point) => {
-              setSelectedPoint(point);
-              setSheetHeight(65);
-            }}
-            onClearSelection={() => setSelectedPoint(null)}
+            onSelectPoint={(point) => selectPoint(point)}
+            onClearSelection={() => clearSelection()}
           />
         </div>
 
@@ -596,7 +566,7 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedPoint(null);
+                      clearSelection();
                     }}
                     className="flex items-center gap-1 text-xs font-bold text-gray-500 mb-1 hover:text-black"
                   >

@@ -6,3 +6,5 @@ export type { UseDrawerGesturesReturn } from './useDrawerGestures';
 
 export { useVerifier } from './useVerifier';
 export type { UseVerifierReturn } from './useVerifier';
+
+export { useActivePoint } from './useActivePoint';
