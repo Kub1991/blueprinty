@@ -1,4 +1,3 @@
-
 import { PointType } from './types';
 
 export const POINT_COLORS = {

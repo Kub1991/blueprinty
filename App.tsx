@@ -13,24 +13,30 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (view) {
       case 'CREATOR_DASHBOARD':
-        return <CreatorDashboard onVerifyClick={(id, startInMap) => {
-          setSelectedBlueprintId(id || null);
-          setVerifyingInMapMode(!!startInMap);
-          setView('CREATOR_VERIFIER');
-        }} />;
+        return (
+          <CreatorDashboard
+            onVerifyClick={(id, startInMap) => {
+              setSelectedBlueprintId(id || null);
+              setVerifyingInMapMode(!!startInMap);
+              setView('CREATOR_VERIFIER');
+            }}
+          />
+        );
       case 'CREATOR_VERIFIER':
-        return <CreatorVerifier
-          blueprintId={selectedBlueprintId}
-          startInMapMode={verifyingInMapMode}
-          onPublish={() => {
-            setSelectedBlueprintId(null);
-            setView('CREATOR_DASHBOARD');
-          }}
-          onCancel={() => {
-            setSelectedBlueprintId(null);
-            setView('CREATOR_DASHBOARD');
-          }}
-        />;
+        return (
+          <CreatorVerifier
+            blueprintId={selectedBlueprintId}
+            startInMapMode={verifyingInMapMode}
+            onPublish={() => {
+              setSelectedBlueprintId(null);
+              setView('CREATOR_DASHBOARD');
+            }}
+            onCancel={() => {
+              setSelectedBlueprintId(null);
+              setView('CREATOR_DASHBOARD');
+            }}
+          />
+        );
       case 'USER_DISCOVERY':
       case 'USER_PREVIEW':
       case 'USER_ACTIVE_TRIP':
@@ -73,7 +79,7 @@ const App: React.FC = () => {
       {renderContent()}
 
       {/* Navigation (Only visible in active app modes, hidden in verifier/active trip for immersion if needed) */}
-      {(view === 'CREATOR_DASHBOARD') && (
+      {view === 'CREATOR_DASHBOARD' && (
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex justify-around p-4 z-50">
           <button
             onClick={() => setView('LANDING')}

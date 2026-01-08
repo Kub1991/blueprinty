@@ -1,0 +1,6 @@
+dist
+node_modules
+.convex
+.husky
+*.local
+package-lock.json

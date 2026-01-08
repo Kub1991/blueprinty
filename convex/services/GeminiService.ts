@@ -32,66 +32,69 @@ Example Output:
 Return ONLY valid JSON.`;
 
 export interface RawPOI {
-    name: string;
-    description: string;
-    type: string;
-    day: number;
-    timestamp: number;
-    searchQuery: string;
-    isGeneric: boolean;
+  name: string;
+  description: string;
+  type: string;
+  day: number;
+  timestamp: number;
+  searchQuery: string;
+  isGeneric: boolean;
 }
 
 /**
  * Analyze a transcript and extract Points of Interest using Gemini
  */
 export async function extractPOIsFromTranscript(transcript: string): Promise<RawPOI[]> {
-    if (!GEMINI_API_KEY) {
-        throw new Error("Missing GEMINI_API_KEY");
-    }
+  if (!GEMINI_API_KEY) {
+    throw new Error('Missing GEMINI_API_KEY');
+  }
 
-    console.log("[GeminiService] Sending to Gemini 3 Flash Preview for analysis...");
-    const modelName = "gemini-3-flash-preview";
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+  console.log('[GeminiService] Sending to Gemini 3 Flash Preview for analysis...');
+  const modelName = 'gemini-3-flash-preview';
+  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
 
-    const response = await fetch(geminiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            systemInstruction: {
-                parts: [{ text: TRAVEL_EXTRACTION_PROMPT }],
+  const response = await fetch(geminiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: TRAVEL_EXTRACTION_PROMPT }],
+      },
+      contents: [
+        {
+          parts: [
+            {
+              text: `Analyze this travel video transcript and extract all POIs:\n\n${transcript}`,
             },
-            contents: [
-                {
-                    parts: [
-                        {
-                            text: `Analyze this travel video transcript and extract all POIs:\n\n${transcript}`,
-                        },
-                    ],
-                },
-            ],
-            generationConfig: {
-                temperature: 0.2,
-                maxOutputTokens: 8192,
-                responseMimeType: "application/json",
-            },
-        }),
-    });
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 8192,
+        responseMimeType: 'application/json',
+      },
+    }),
+  });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[GeminiService] Gemini API Error Response:", errorText);
-        throw new Error(`Gemini API error: ${response.status}`);
-    }
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('[GeminiService] Gemini API Error Response:', errorText);
+    throw new Error(`Gemini API error: ${response.status}`);
+  }
 
-    const geminiData = await response.json();
-    const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    console.log("[GeminiService] Gemini response received, length:", aiText.length);
+  const geminiData = await response.json();
+  const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  console.log('[GeminiService] Gemini response received, length:', aiText.length);
 
-    try {
-        const cleanedText = aiText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        return JSON.parse(cleanedText);
-    } catch (parseError) {
-        console.error("[GeminiService] Failed to parse AI response:", aiText);
-        throw new Error("Failed to parse AI response as JSON");
-    }
+  try {
+    const cleanedText = aiText
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
+    return JSON.parse(cleanedText);
+  } catch (_parseError) {
+    console.error('[GeminiService] Failed to parse AI response:', aiText);
+    throw new Error('Failed to parse AI response as JSON');
+  }
 }

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
+import { useQuery } from 'convex/react';
+import { api } from '../convex/_generated/api';
 import { Blueprint } from '../types';
 
 export interface BlueprintFilters {
@@ -36,38 +36,40 @@ export const useBlueprintFilters = (): UseBlueprintFiltersReturn => {
 
   const blueprints = useMemo(() => {
     if (!convexBlueprints) return [];
-    return convexBlueprints.map(bp => ({
+    return convexBlueprints.map((bp) => ({
       ...bp,
       id: bp._id,
       youtubeVideoId: bp.youtubeVideoId,
       isPurchased: false,
-      currency: "PLN"
+      currency: 'PLN',
     })) as unknown as Blueprint[];
   }, [convexBlueprints]);
 
   const filteredBlueprints = useMemo(() => {
-    return blueprints.filter(bp => {
-      const matchesSearch =
-        bp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        bp.creatorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        bp.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    return blueprints
+      .filter((bp) => {
+        const matchesSearch =
+          bp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          bp.creatorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          bp.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      const matchesRating = minRating ? bp.rating >= minRating : true;
-      const matchesTag = selectedTag ? bp.tags.includes(selectedTag) : true;
-      const matchesCreator = selectedCreator ? bp.creatorName === selectedCreator : true;
-      const matchesRegion = selectedRegion ? bp.region === selectedRegion : true;
+        const matchesRating = minRating ? bp.rating >= minRating : true;
+        const matchesTag = selectedTag ? bp.tags.includes(selectedTag) : true;
+        const matchesCreator = selectedCreator ? bp.creatorName === selectedCreator : true;
+        const matchesRegion = selectedRegion ? bp.region === selectedRegion : true;
 
-      return matchesSearch && matchesRating && matchesTag && matchesCreator && matchesRegion;
-    }).sort((a, b) => b.rating - a.rating);
+        return matchesSearch && matchesRating && matchesTag && matchesCreator && matchesRegion;
+      })
+      .sort((a, b) => b.rating - a.rating);
   }, [blueprints, searchQuery, minRating, selectedTag, selectedCreator, selectedRegion]);
 
   const allTags = useMemo(() => {
-    return Array.from(new Set(blueprints.flatMap(bp => bp.tags)));
+    return Array.from(new Set(blueprints.flatMap((bp) => bp.tags)));
   }, [blueprints]);
 
   const uniqueCreators = useMemo(() => {
     const creators = new Map<string, string>();
-    blueprints.forEach(bp => {
+    blueprints.forEach((bp) => {
       if (!creators.has(bp.creatorName)) {
         creators.set(bp.creatorName, bp.creatorAvatar);
       }
@@ -83,7 +85,13 @@ export const useBlueprintFilters = (): UseBlueprintFiltersReturn => {
     setSearchQuery('');
   };
 
-  const hasActiveFilters = !!(minRating || selectedTag || selectedCreator || selectedRegion || searchQuery);
+  const hasActiveFilters = !!(
+    minRating ||
+    selectedTag ||
+    selectedCreator ||
+    selectedRegion ||
+    searchQuery
+  );
 
   return {
     filters: {

@@ -1,10 +1,8 @@
-
-import { query } from "./_generated/server";
-import { v } from "convex/values";
+import { query } from './_generated/server';
 
 export const checkBlueprints = query({
-    args: {},
-    handler: async (ctx) => {
-        return await ctx.db.query("blueprints").order("desc").take(5);
-    },
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query('blueprints').order('desc').take(5);
+  },
 });

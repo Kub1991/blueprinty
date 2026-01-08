@@ -7,13 +7,13 @@ import App from './App';
 // Initialize Convex client
 // The CONVEX_URL will be set after running `npx convex dev`
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
-const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
 const convex = convexUrl ? new ConvexReactClient(convexUrl) : null;
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
+  throw new Error('Could not find root element to mount to');
 }
 
 const root = ReactDOM.createRoot(rootElement);

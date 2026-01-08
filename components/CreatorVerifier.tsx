@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useVerifier } from '../hooks';
 import MapVerifier from './Creator/MapVerifier';
-import { Loader2, Sparkles, Check, Map, ArrowRight } from 'lucide-react';
+import { Loader2, Sparkles, Map } from 'lucide-react';
 import { POINT_ICONS, POINT_COLORS } from '../constants';
 
 interface CreatorVerifierProps {
@@ -11,7 +11,12 @@ interface CreatorVerifierProps {
   startInMapMode?: boolean;
 }
 
-const CreatorVerifier: React.FC<CreatorVerifierProps> = ({ blueprintId, onPublish, onCancel, startInMapMode = false }) => {
+const CreatorVerifier: React.FC<CreatorVerifierProps> = ({
+  blueprintId,
+  onPublish,
+  onCancel,
+  startInMapMode = false,
+}) => {
   const {
     loading,
     points,
@@ -31,8 +36,8 @@ const CreatorVerifier: React.FC<CreatorVerifierProps> = ({ blueprintId, onPublis
       await finalizeAndPublish(verified);
       onPublish();
     } catch (e) {
-      console.error("Failed to publish", e);
-      alert("Wystąpił błąd podczas publikacji.");
+      console.error('Failed to publish', e);
+      alert('Wystąpił błąd podczas publikacji.');
     } finally {
       setIsFinishing(false);
     }
@@ -46,9 +51,7 @@ const CreatorVerifier: React.FC<CreatorVerifierProps> = ({ blueprintId, onPublis
         <div className="w-full space-y-6">
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold tracking-tight">Nowy Blueprint</h2>
-            <p className="text-gray-500">
-              Wklej opis filmu lub transkrypcję. AI zrobi resztę.
-            </p>
+            <p className="text-gray-500">Wklej opis filmu lub transkrypcję. AI zrobi resztę.</p>
           </div>
 
           <textarea
@@ -92,7 +95,9 @@ const CreatorVerifier: React.FC<CreatorVerifierProps> = ({ blueprintId, onPublis
     return (
       <div className="max-w-4xl mx-auto p-6 min-h-screen font-sans pb-32">
         <div className="text-center mb-8 space-y-2">
-          <h2 className="text-3xl font-black tracking-tight">AI znalazło {points.length} punktów</h2>
+          <h2 className="text-3xl font-black tracking-tight">
+            AI znalazło {points.length} punktów
+          </h2>
           <p className="text-gray-500">
             Oto lista atrakcji wyciągniętych z Twojego filmu. Co chcesz z nimi zrobić?
           </p>
@@ -101,7 +106,10 @@ const CreatorVerifier: React.FC<CreatorVerifierProps> = ({ blueprintId, onPublis
         {/* Points Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
           {points.map((point) => (
-            <div key={point.id} className="bg-white border border-gray-100 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:shadow-md transition">
+            <div
+              key={point.id}
+              className="bg-white border border-gray-100 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:shadow-md transition"
+            >
               <div
                 className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-sm border-2 border-white ${POINT_COLORS[point.type]}`}
               >
@@ -134,7 +142,10 @@ const CreatorVerifier: React.FC<CreatorVerifierProps> = ({ blueprintId, onPublis
               <Loader2 size={18} className="animate-spin" />
             ) : (
               <>
-                <Sparkles size={18} className="text-purple-400 group-hover:rotate-12 transition-transform" />
+                <Sparkles
+                  size={18}
+                  className="text-purple-400 group-hover:rotate-12 transition-transform"
+                />
                 Publikuj jako AI
               </>
             )}

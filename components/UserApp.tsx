@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Blueprint, TripPoint } from '../types';
+import { Blueprint } from '../types';
 import { POINT_COLORS, POINT_ICONS } from '../constants';
 import { useBlueprintFilters, useDrawerGestures, useActivePoint } from '../hooks';
 import {
@@ -10,7 +10,6 @@ import {
   PointTimeline,
   PointDetail,
   MapView,
-  Review,
 } from './UserApp/index';
 import {
   Search,
@@ -29,7 +28,6 @@ import { MOCK_REVIEWS } from '../data/mockData';
 interface UserAppProps {
   onBackToHome: () => void;
 }
-
 
 const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
   const [selectedBlueprint, setSelectedBlueprint] = useState<Blueprint | null>(null);
@@ -70,10 +68,7 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
           <div className="relative max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
             {/* Header Row */}
             <div className="flex items-center justify-between md:w-auto">
-              <div
-                className="flex items-center gap-2 cursor-pointer"
-                onClick={onBackToHome}
-              >
+              <div className="flex items-center gap-2 cursor-pointer" onClick={onBackToHome}>
                 <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white font-bold text-xs tracking-tighter hover:scale-105 transition-transform">
                   BP
                 </div>
@@ -105,10 +100,11 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
               </div>
               <button
                 onClick={resetFilters}
-                className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all duration-300 ${hasActiveFilters
-                  ? 'bg-black text-white border-black shadow-lg shadow-black/20'
-                  : 'bg-white text-gray-900 border-gray-200 hover:bg-gray-50'
-                  }`}
+                className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all duration-300 ${
+                  hasActiveFilters
+                    ? 'bg-black text-white border-black shadow-lg shadow-black/20'
+                    : 'bg-white text-gray-900 border-gray-200 hover:bg-gray-50'
+                }`}
               >
                 <SlidersHorizontal size={18} strokeWidth={2.5} />
               </button>
@@ -202,10 +198,7 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
             onClick={() => setSelectedBlueprint(null)}
             className="pointer-events-auto w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-black hover:text-white hover:border-black transition-all duration-300 shadow-xl group"
           >
-            <X
-              size={24}
-              className="group-hover:rotate-90 transition-transform duration-300"
-            />
+            <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
           </button>
           <button className="pointer-events-auto w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-black transition-all duration-300 shadow-xl">
             <Share2 size={20} />
@@ -256,17 +249,13 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
                       <span className="font-bold text-base leading-none">
                         {selectedBlueprint.creatorName}
                       </span>
-                      <span className="text-xs opacity-80 font-medium mt-1">
-                        Verified Creator
-                      </span>
+                      <span className="text-xs opacity-80 font-medium mt-1">Verified Creator</span>
                     </div>
                   </div>
                   <div className="w-px h-8 bg-white/20"></div>
                   <div className="flex items-center gap-2">
                     <Star size={20} className="text-yellow-400" fill="currentColor" />
-                    <span className="text-xl font-bold">
-                      {selectedBlueprint.rating.toFixed(1)}
-                    </span>
+                    <span className="text-xl font-bold">{selectedBlueprint.rating.toFixed(1)}</span>
                     <span className="text-sm opacity-60">(124 reviews)</span>
                   </div>
                 </div>
@@ -303,8 +292,9 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
                   {selectedBlueprint.points.slice(0, 3).map((point) => (
                     <div key={point.id} className="relative pl-10 group">
                       <div
-                        className={`absolute -left-[17px] top-1 w-9 h-9 rounded-full border-4 border-white shadow-md flex items-center justify-center text-sm z-10 ${POINT_COLORS[point.type]
-                          }`}
+                        className={`absolute -left-[17px] top-1 w-9 h-9 rounded-full border-4 border-white shadow-md flex items-center justify-center text-sm z-10 ${
+                          POINT_COLORS[point.type]
+                        }`}
                       >
                         {POINT_ICONS[point.type]}
                       </div>
@@ -316,9 +306,7 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
                           <div className="h-px bg-gray-100 flex-1"></div>
                         </div>
                         <h4 className="text-lg font-bold text-gray-900">{point.name}</h4>
-                        <p className="text-gray-500 mt-2 leading-relaxed">
-                          {point.description}
-                        </p>
+                        <p className="text-gray-500 mt-2 leading-relaxed">{point.description}</p>
                       </div>
                     </div>
                   ))}
@@ -330,12 +318,8 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
                         🔒
                       </div>
                       <div>
-                        <h4 className="text-lg font-bold text-gray-900">
-                          Ukryty Wodospad
-                        </h4>
-                        <p className="text-gray-500 mt-2">
-                          Dostępne po odblokowaniu...
-                        </p>
+                        <h4 className="text-lg font-bold text-gray-900">Ukryty Wodospad</h4>
+                        <p className="text-gray-500 mt-2">Dostępne po odblokowaniu...</p>
                       </div>
                     </div>
                     <div className="relative">
@@ -343,12 +327,8 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
                         🔒
                       </div>
                       <div>
-                        <h4 className="text-lg font-bold text-gray-900">
-                          Sekretna Plaża
-                        </h4>
-                        <p className="text-gray-500 mt-2">
-                          Dostępne po odblokowaniu...
-                        </p>
+                        <h4 className="text-lg font-bold text-gray-900">Sekretna Plaża</h4>
+                        <p className="text-gray-500 mt-2">Dostępne po odblokowaniu...</p>
                       </div>
                     </div>
                   </div>
@@ -427,9 +407,7 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
                     <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">
                       Stworzone przez
                     </p>
-                    <p className="font-bold text-gray-900">
-                      {selectedBlueprint.creatorName}
-                    </p>
+                    <p className="font-bold text-gray-900">{selectedBlueprint.creatorName}</p>
                   </div>
                 </div>
               </div>
@@ -445,9 +423,7 @@ const UserApp: React.FC<UserAppProps> = ({ onBackToHome }) => {
                 Cena za dostęp
               </span>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-gray-900">
-                  {selectedBlueprint.price}
-                </span>
+                <span className="text-2xl font-black text-gray-900">{selectedBlueprint.price}</span>
                 <span className="text-sm font-bold text-gray-500">PLN</span>
               </div>
             </div>

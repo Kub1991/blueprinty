@@ -1,9 +1,8 @@
 import React from 'react';
 import { Youtube, Search, Trash, Loader2 } from 'lucide-react';
-import YouTubeVideoCard, { YouTubeVideo } from './Creator/YouTubeVideoCard';
+import YouTubeVideoCard from './Creator/YouTubeVideoCard';
 import CreatorStats from './Creator/CreatorStats';
 import { useCreatorVideos } from '../hooks/useCreatorVideos';
-import { Id } from '../convex/_generated/dataModel';
 
 interface CreatorDashboardProps {
   onVerifyClick: (blueprintId?: string, startInMap?: boolean) => void;
@@ -31,14 +30,23 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onVerifyClick }) =>
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900 leading-none">Creator Studio</h1>
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 leading-none">
+            Creator Studio
+          </h1>
           <p className="text-gray-500 mt-2 font-medium">Zarządzaj swoją marką i planami</p>
         </div>
         <div className="flex -space-x-2">
-          {[1, 2, 3].map(i => (
-            <img key={i} src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`} className="w-8 h-8 rounded-full border-2 border-white shadow-sm" alt="Fan" />
+          {[1, 2, 3].map((i) => (
+            <img
+              key={i}
+              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`}
+              className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+              alt="Fan"
+            />
           ))}
-          <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-white shadow-sm flex items-center justify-center text-[10px] font-bold text-gray-400">+12k</div>
+          <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-white shadow-sm flex items-center justify-center text-[10px] font-bold text-gray-400">
+            +12k
+          </div>
         </div>
       </div>
 
@@ -77,7 +85,7 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onVerifyClick }) =>
             </div>
           ) : (
             <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-              <img src={userData?.avatarUrl || ""} className="w-6 h-6 rounded-full" alt="Creator" />
+              <img src={userData?.avatarUrl || ''} className="w-6 h-6 rounded-full" alt="Creator" />
               <span className="text-xs font-bold">{userData?.youtubeChannelHandle}</span>
               <button
                 onClick={handleDisconnect}
@@ -96,7 +104,9 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onVerifyClick }) =>
               <YouTubeVideoCard
                 key={video._id}
                 video={video}
-                onProcess={(v) => handleProcessVideo(v, (blueprintId) => onVerifyClick(blueprintId))}
+                onProcess={(v) =>
+                  handleProcessVideo(v, (blueprintId) => onVerifyClick(blueprintId))
+                }
               />
             ))}
             {isConnected && hasMore && (
@@ -132,14 +142,18 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onVerifyClick }) =>
         <h3 className="text-xl font-black tracking-tight">Twoje Aktywne Plany (Sprzedaż)</h3>
         {myBlueprints && myBlueprints.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {myBlueprints.map((bp: any) => (
+            {myBlueprints.map((bp) => (
               <div
                 key={bp._id}
                 className="group relative bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer"
                 onClick={() => onVerifyClick(bp._id, true)}
               >
                 <div className="aspect-video relative">
-                  <img src={bp.thumbnailUrl} className="w-full h-full object-cover" alt={bp.title} />
+                  <img
+                    src={bp.thumbnailUrl}
+                    className="w-full h-full object-cover"
+                    alt={bp.title}
+                  />
                   <div className="absolute top-3 left-3 flex gap-2">
                     {bp.status === 'published' && bp.creatorVerified && (
                       <span className="bg-emerald-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-tight">

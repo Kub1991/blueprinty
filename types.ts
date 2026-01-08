@@ -1,10 +1,9 @@
-
 export enum PointType {
   FOOD = 'food',
   STAY = 'stay',
   ACTIVITY = 'activity',
   INSTA = 'insta',
-  TIP = 'tip'
+  TIP = 'tip',
 }
 
 export interface GroundingSource {

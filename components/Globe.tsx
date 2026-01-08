@@ -15,17 +15,17 @@ const Globe: React.FC<GlobeProps> = ({ markers, focusOn }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerInteracting = useRef<number | null>(null);
   const pointerInteractionMovement = useRef(0);
-  
+
   // Physics state for rotation (replacing react-spring)
   const phiRef = useRef(0); // Current rotation
   const targetPhiRef = useRef(0); // Target rotation
   const velocityRef = useRef(0); // Velocity
-  
+
   useEffect(() => {
     if (focusOn) {
       // Convert lat/lng to phi (rotation)
-      // Phi = 0 is roughly Greenwich. 
-      const [lat, lng] = focusOn;
+      // Phi = 0 is roughly Greenwich.
+      const [_lat, lng] = focusOn;
       const phi = lng * (Math.PI / 180);
       targetPhiRef.current = phi;
     }
@@ -56,23 +56,23 @@ const Globe: React.FC<GlobeProps> = ({ markers, focusOn }) => {
       markers: markers,
       onRender: (state) => {
         // This is called on every animation frame
-        
+
         // 1. Calculate Target
         // If not focusing and not dragging, auto-rotate
         if (!focusOn && !pointerInteracting.current) {
-             targetPhiRef.current += 0.005;
+          targetPhiRef.current += 0.005;
         }
 
         // 2. Spring Physics (Current -> Target)
         // F = -k * x - c * v
         const k = 0.1; // Stiffness
         const d = 0.9; // Damping
-        
+
         const dist = targetPhiRef.current - phiRef.current;
         const acc = dist * k;
         velocityRef.current += acc;
         velocityRef.current *= d;
-        
+
         phiRef.current += velocityRef.current;
 
         // 3. Apply to state with user interaction
@@ -85,14 +85,20 @@ const Globe: React.FC<GlobeProps> = ({ markers, focusOn }) => {
       globe.destroy();
       window.removeEventListener('resize', onResize);
     };
-  }, [markers]); // Recreate only if markers change. Focus is handled via refs in onRender.
+  }, [markers, focusOn]); // Recreate only if markers or focus change.
 
   return (
     <div className="w-full h-full flex items-center justify-center relative overflow-hidden bg-gradient-to-b from-blue-50 to-white">
       <div style={{ width: '100%', maxWidth: 600, aspectRatio: 1 }} className="relative">
         <canvas
           ref={canvasRef}
-          style={{ width: '100%', height: '100%', contain: 'layout paint size', opacity: 0, transition: 'opacity 1s ease' }}
+          style={{
+            width: '100%',
+            height: '100%',
+            contain: 'layout paint size',
+            opacity: 0,
+            transition: 'opacity 1s ease',
+          }}
           onPointerDown={(e) => {
             pointerInteracting.current = e.clientX - pointerInteractionMovement.current;
             canvasRef.current!.style.cursor = 'grabbing';
@@ -119,7 +125,7 @@ const Globe: React.FC<GlobeProps> = ({ markers, focusOn }) => {
           }}
         />
       </div>
-      
+
       {/* Atmosphere Glow Effect */}
       <div className="absolute inset-0 pointer-events-none bg-radial-gradient from-transparent to-white opacity-20"></div>
     </div>
